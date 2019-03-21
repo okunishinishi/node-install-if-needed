@@ -18,7 +18,7 @@ Run npm install only if needed
 ## Install
 
 ```bash
-npm i install-if-needed
+npm i npm-install-if-needed
 ```
 
 ## Usage 
@@ -26,14 +26,14 @@ npm i install-if-needed
 ```bash
 
 cd __your_package_dir__
-npx install-if-needed # Run npm install only if needed
+npx npm-install-if-needed # Run npm install only if needed
 
 ```
 
 ## Programmatic API
 
 ```node
-const installIfNeeded = require('install-if-needed')
+const installIfNeeded = require('npm-install-if-needed')
 
 installIfNeeded()
 ```
