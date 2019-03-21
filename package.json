@@ -1,5 +1,5 @@
 {
-  "name": "install-if-needed",
+  "name": "npm-install-if-needed",
   "description": "Install if needed",
   "version": "1.0.1",
   "author": "Taka Okunishi",
