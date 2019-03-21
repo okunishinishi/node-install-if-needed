@@ -1,0 +1,33 @@
+{
+  "name": "install-if-needed",
+  "description": "Install if needed",
+  "version": "1.0.0",
+  "author": "Taka Okunishi",
+  "bin": "cli.js",
+  "bugs": {
+    "url": "https://github.com/okunishinishi/node-install-if-needed/issues"
+  },
+  "dependencies": {
+    "debug": "^4.1.1",
+    "findup": "^0.1.5",
+    "semver": "^5.6.0",
+    "yargs": "^13.2.2"
+  },
+  "devDependencies": {
+    "fixpack": "^2.3.1"
+  },
+  "homepage": "https://github.com/okunishinishi/node-install-if-needed#readme",
+  "keywords": [
+    "install"
+  ],
+  "license": "MIT",
+  "main": "lib.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/okunishinishi/node-install-if-needed.git"
+  },
+  "scripts": {
+    "prepare": "fixpack",
+    "test": "mocha"
+  }
+}

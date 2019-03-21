@@ -1,0 +1,6 @@
+{
+  "name": "mock-pack-01",
+  "devDependencies": {
+    "chalk": "*"
+  }
+}
