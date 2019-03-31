@@ -57,7 +57,7 @@ async function installIfNeeded(options = {}) {
       continue
     }
     try {
-      const { stdout } = await execAsync(`node -e "process.stdout.write(require.resolve('${name}/package.json'))"`, { cwd })
+      const { stdout } = await execAsync(`node -e "try { process.stdout.write(require.resolve('${name}/package.json')) } catch (e) { }"`, { cwd })
       const pkg = JSON.parse(await readFileAsync(stdout.trim()))
       const ok = semver.satisfies(pkg.version, version)
       if (ok) {
@@ -66,7 +66,6 @@ async function installIfNeeded(options = {}) {
       }
       await utils.npmInstallAt(cwd)
     } catch (e) {
-      console.log(e)
       await utils.npmInstallAt(cwd)
       return true
     }
