@@ -19,56 +19,62 @@ const findupAsync = promisify(findup)
 const execAsync = promisify(exec)
 
 const utils = {
-  async packageForDir(cwd) {
+  async packageForDir (cwd) {
     const basename = 'package.json'
-    const dirname = await findupAsync(cwd, basename).catch((err) => {
-      throw (`[install-if-needed] package.json not found from ${cwd}`)
+    const dirname = await findupAsync(cwd, basename).catch(err => {
+      throw `[install-if-needed] package.json not found from ${cwd}`
     })
     const filename = path.resolve(dirname, basename)
     const content = await readFileAsync(filename)
     return JSON.parse(content)
   },
 
-  async npmInstallAt(cwd) {
+  async npmInstallAt (cwd) {
     return new Promise((resolve, reject) => {
       const npm = spawn('npm', ['install'], {
         stdio: 'inherit',
-        cwd,
+        cwd
       })
       npm.on('close', () => resolve())
-      npm.on('error', (err) => reject(err))
+      npm.on('error', err => reject(err))
     })
+  },
+
+  modulePackagePath (name) {
+    try {
+      return require.resolve(`${name}/package.json`)
+    } catch (e) {
+      return null
+    }
   }
 }
 
 /** @lends installIfNeeded */
-async function installIfNeeded(options = {}) {
-  const {
-    cwd = process.cwd()
-  } = options
+async function installIfNeeded (options = {}) {
+  const { cwd = process.cwd() } = options
   const pkg = await utils.packageForDir(cwd)
   const deps = {
     ...(pkg.dependencies || {}),
-    ...(pkg.devDependencies || {}),
+    ...(pkg.devDependencies || {})
   }
   for (const [name, version] of Object.entries(deps)) {
     if (/^file:/.test(version)) {
       debug('Skip', name, version)
       continue
     }
-    try {
-      const { stdout } = await execAsync(`node -e "try { process.stdout.write(require.resolve('${name}/package.json')) } catch (e) { }"`, { cwd })
-      const pkg = JSON.parse(await readFileAsync(stdout.trim()))
-      const ok = semver.satisfies(pkg.version, version)
-      if (ok) {
-        debug('No need', name, version)
-        continue
-      }
-      await utils.npmInstallAt(cwd)
-    } catch (e) {
+    const modulePackagePath = utils.modulePackagePath(name)
+    if (!modulePackagePath) {
       await utils.npmInstallAt(cwd)
       return true
     }
+    const pkg = JSON.parse(await readFileAsync(modulePackagePath))
+    const ok = semver.satisfies(pkg.version, version)
+    if (ok) {
+      debug('No need', name, version)
+      continue
+    }
+    await utils.npmInstallAt(cwd)
+    return true
   }
   return false
 }
