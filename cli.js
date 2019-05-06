@@ -5,11 +5,12 @@
 'use strict'
 
 const lib = require('./lib')
-const argv = require('yargs').argv
+const {argv} = require('yargs')
 
 void async function () {
   const installed = await lib({
-    cwd: argv.cwd
+    cwd: argv.cwd,
+    ignoreScript: argv.ignoreScript,
   })
   if (installed) {
     console.log('[install-if-needed] Package has been installed')
