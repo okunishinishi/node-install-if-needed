@@ -45,6 +45,15 @@ const utils = {
     });
   },
 
+  async readFileAsJSON(filename) {
+    try {
+      return JSON.parse(await readFileAsync(filename));
+    } catch (e) {
+      console.warn(`[install-if-needed] Failed to read json`, filename);
+      return null;
+    }
+  },
+
   modulePackagePath(name) {
     try {
       return require.resolve(`${name}/package.json`);
@@ -56,7 +65,7 @@ const utils = {
 
 /** @lends installIfNeeded */
 async function installIfNeeded(options = {}) {
-  const { cwd = process.cwd(), ignoreScript=false } = options;
+  const { cwd = process.cwd(), ignoreScript = false } = options;
   const pkg = await utils.packageForDir(cwd);
   const deps = {
     ...(pkg.dependencies || {}),
@@ -69,16 +78,16 @@ async function installIfNeeded(options = {}) {
     }
     const modulePackagePath = utils.modulePackagePath(name);
     if (!modulePackagePath) {
-      await utils.npmInstallAt(cwd, {ignoreScript});
+      await utils.npmInstallAt(cwd, { ignoreScript });
       return true;
     }
-    const pkg = JSON.parse(await readFileAsync(modulePackagePath));
-    const ok = semver.satisfies(pkg.version, version);
+    const pkg = await utils.readFileAsJSON(modulePackagePath);
+    const ok = !!pkg && semver.satisfies(pkg.version, version);
     if (ok) {
       debug("No need", name, version);
       continue;
     }
-    await utils.npmInstallAt(cwd, {ignoreScript});
+    await utils.npmInstallAt(cwd, { ignoreScript });
     return true;
   }
   return false;
