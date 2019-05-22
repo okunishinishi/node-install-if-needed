@@ -4,103 +4,111 @@
  * @param {string} [options.cwd=process.cwd()]
  * @returns {boolean} Installed or not
  */
-"use strict";
+'use strict'
 
-const semver = require("semver");
-const findup = require("findup");
-const { exec, spawn } = require("child_process");
-const { promisify } = require("util");
-const path = require("path");
-const debug = require("debug")("install-if-needed");
-const fs = require("fs");
+const semver = require('semver')
+const findup = require('findup')
+const { exec, spawn } = require('child_process')
+const { promisify } = require('util')
+const path = require('path')
+const debug = require('debug')('install-if-needed')
+const fs = require('fs')
 
-const readFileAsync = promisify(fs.readFile);
-const findupAsync = promisify(findup);
-const execAsync = promisify(exec);
+const readFileAsync = promisify(fs.readFile)
+const findupAsync = promisify(findup)
 
 const utils = {
-  async packageForDir(cwd) {
-    const basename = "package.json";
+  async packageForDir (cwd) {
+    const basename = 'package.json'
     const dirname = await findupAsync(cwd, basename).catch(err => {
-      throw `[install-if-needed] package.json not found from ${cwd}`;
-    });
-    const filename = path.resolve(dirname, basename);
-    const content = await readFileAsync(filename);
-    return JSON.parse(content);
+      throw `[install-if-needed] package.json not found from ${cwd}`
+    })
+    const filename = path.resolve(dirname, basename)
+    const content = await readFileAsync(filename)
+    return JSON.parse(content)
   },
 
-  async npmInstallAt(cwd, options = {}) {
-    const { ignoreScript = false } = options;
+  async npmInstallAt (cwd, options = {}) {
+    const { ignoreScript = false } = options
     return new Promise((resolve, reject) => {
       const npm = spawn(
-        "npm",
-        ["install", ...(ignoreScript ? ["--ignore-scripts"] : [])],
+        'npm',
+        ['install', ...(ignoreScript ? ['--ignore-scripts'] : [])],
         {
-          stdio: "inherit",
+          stdio: 'inherit',
           cwd
         }
-      );
-      npm.on("close", () => resolve());
-      npm.on("error", err => reject(err));
-    });
+      )
+      npm.on('close', () => resolve())
+      npm.on('error', err => reject(err))
+    })
   },
 
-  async readFileAsJSON(filename) {
+  async readFileAsJSON (filename) {
     try {
-      return JSON.parse(await readFileAsync(filename));
+      return JSON.parse(await readFileAsync(filename))
     } catch (e) {
-      console.warn(`[install-if-needed] Failed to read json`, filename);
-      return null;
+      console.warn(`[install-if-needed] Failed to read json`, filename)
+      return null
     }
   },
 
-  modulePackagePath(name) {
-    try {
-      return require.resolve(`${name}/package.json`);
-    } catch (e) {
-      return null;
+  modulePackagePath (name, { cwd }) {
+    const moduleIds = [
+      `${name}/package.json`,
+      `node_modules/${name}/package.json`,
+      `${cwd}/node_modules/${name}/package.json`
+    ]
+    for (const moduleId of moduleIds) {
+      try {
+        return require.resolve(moduleId)
+      } catch (e) {}
     }
+    console.log('!!not found', moduleIds, name, cwd)
+    return null
   }
-};
-
-/** @lends installIfNeeded */
-async function installIfNeeded(options = {}) {
-  const { cwd = process.cwd(), ignoreScript = false } = options;
-  const pkg = await utils.packageForDir(cwd);
-  const deps = {
-    ...(pkg.dependencies || {}),
-    ...(pkg.devDependencies || {})
-  };
-  const needed = installIfNeeded.needsInstall(pkg);
-  if (needed) {
-    await utils.npmInstallAt(cwd, { ignoreScript });
-  }
-  return needed;
 }
 
-installIfNeeded.needsInstall = async pkg => {
+/** @lends installIfNeeded */
+async function installIfNeeded (options = {}) {
+  const { cwd = process.cwd(), ignoreScript = false } = options
+  const pkg = await utils.packageForDir(cwd)
+  const needed = await installIfNeeded.needsInstall(pkg, { cwd })
+  if (needed) {
+    await utils.npmInstallAt(cwd, { ignoreScript })
+  }
+  return needed
+}
+
+installIfNeeded.needsInstall = async (pkg, { cwd }) => {
   const deps = {
     ...(pkg.dependencies || {}),
     ...(pkg.devDependencies || {})
-  };
-  for (const [name, version] of Object.entries(deps)) {
-    if (/^file:/.test(version)) {
-      debug("Skip local deps", name, version);
-      continue;
+  }
+  const entriesToCheck = Object.entries(deps).filter(([name, version]) => {
+    const skipped = /^file:/.test(version)
+    if (skipped) {
+      debug('Skip local deps', name, version)
     }
-    const modulePackagePath = utils.modulePackagePath(name);
+    return !skipped
+  })
+  if (entriesToCheck.length === 0) {
+    return false
+  }
+  for (const [name, version] of entriesToCheck) {
+    const modulePackagePath = utils.modulePackagePath(name, { cwd })
     if (!modulePackagePath) {
-      debug("Not found", name);
-      return true;
+      debug('Not found', name)
+      return true
     }
-    const pkg = await utils.readFileAsJSON(modulePackagePath);
-    const ok = !!pkg && semver.satisfies(pkg.version, version);
+    const pkg = await utils.readFileAsJSON(modulePackagePath)
+    const ok = !!pkg && semver.satisfies(pkg.version, version)
     if (!ok) {
-      debug("Not specified", name, version);
-      return true;
+      debug('Not specified', name, version)
+      return true
     }
   }
-  return false;
-};
+  return false
+}
 
-module.exports = installIfNeeded;
+module.exports = installIfNeeded
