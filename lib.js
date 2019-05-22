@@ -71,26 +71,36 @@ async function installIfNeeded(options = {}) {
     ...(pkg.dependencies || {}),
     ...(pkg.devDependencies || {})
   };
+  const needed = installIfNeeded.needsInstall(pkg);
+  if (needed) {
+    await utils.npmInstallAt(cwd, { ignoreScript });
+  }
+  return needed;
+}
+
+installIfNeeded.needsInstall = async pkg => {
+  const deps = {
+    ...(pkg.dependencies || {}),
+    ...(pkg.devDependencies || {})
+  };
   for (const [name, version] of Object.entries(deps)) {
     if (/^file:/.test(version)) {
-      debug("Skip", name, version);
+      debug("Skip local deps", name, version);
       continue;
     }
     const modulePackagePath = utils.modulePackagePath(name);
     if (!modulePackagePath) {
-      await utils.npmInstallAt(cwd, { ignoreScript });
+      debug("Not found", name);
       return true;
     }
     const pkg = await utils.readFileAsJSON(modulePackagePath);
     const ok = !!pkg && semver.satisfies(pkg.version, version);
-    if (ok) {
-      debug("No need", name, version);
-      continue;
+    if (!ok) {
+      debug("Not specified", name, version);
+      return true;
     }
-    await utils.npmInstallAt(cwd, { ignoreScript });
-    return true;
   }
   return false;
-}
+};
 
 module.exports = installIfNeeded;
