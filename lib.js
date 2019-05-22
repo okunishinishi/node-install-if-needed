@@ -64,7 +64,7 @@ const utils = {
         return require.resolve(moduleId)
       } catch (e) {}
     }
-    console.log('!!not found', moduleIds, name, cwd)
+    debug('Not found', { name, cwd, moduleIds })
     return null
   }
 }
