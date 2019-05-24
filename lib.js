@@ -36,7 +36,8 @@ const utils = {
         ['install', ...(ignoreScript ? ['--ignore-scripts'] : [])],
         {
           stdio: 'inherit',
-          cwd
+          cwd,
+          env: {...process.env},
         }
       )
       npm.on('close', () => resolve())
