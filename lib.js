@@ -84,7 +84,7 @@ async function installIfNeeded (options = {}) {
 installIfNeeded.needsInstall = async (pkg, { cwd }) => {
   const deps = {
     ...(pkg.dependencies || {}),
-    ...(pkg.devDependencies || {})
+    ...(process.env.NODE_ENV === 'production' ? {} : (pkg.devDependencies || {}))
   }
   const entriesToCheck = Object.entries(deps).filter(([name, version]) => {
     const skipped = /^file:/.test(version)
