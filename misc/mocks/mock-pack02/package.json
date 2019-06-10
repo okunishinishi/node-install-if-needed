@@ -1,0 +1,6 @@
+{
+  "name": "mock-pack-02",
+  "devDependencies": {
+    "mock-pack01": "file:../mock-pack01"
+  }
+}

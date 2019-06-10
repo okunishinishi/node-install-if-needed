@@ -1,6 +1,7 @@
 {
   "name": "mock-pack-01",
   "devDependencies": {
-    "chalk": "*"
+    "chalk": "*",
+    "semver": ">=6"
   }
 }

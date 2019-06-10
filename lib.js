@@ -86,27 +86,20 @@ installIfNeeded.needsInstall = async (pkg, { cwd }) => {
     ...(pkg.dependencies || {}),
     ...(process.env.NODE_ENV === 'production' ? {} : (pkg.devDependencies || {}))
   }
-  const entriesToCheck = Object.entries(deps).filter(([name, version]) => {
-    const skipped = /^file:/.test(version)
-    if (skipped) {
-      debug('Skip local deps', name, version)
-    }
-    return !skipped
-  })
-  if (entriesToCheck.length === 0) {
-    return false
-  }
-  for (const [name, version] of entriesToCheck) {
+  for (const [name, version] of Object.entries(deps)) {
     const modulePackagePath = utils.modulePackagePath(name, { cwd })
     if (!modulePackagePath) {
       debug('Not found', name)
       return true
     }
-    const pkg = await utils.readFileAsJSON(modulePackagePath)
-    const ok = !!pkg && semver.satisfies(pkg.version, version)
-    if (!ok) {
-      debug('Not specified', name, version)
-      return true
+    const isSemver = Boolean(semver.valid(version) || semver.validRange(version))
+    if (isSemver) {
+      const pkg = await utils.readFileAsJSON(modulePackagePath)
+      const ok = !!pkg && semver.satisfies(pkg.version, version)
+      if (!ok) {
+        debug('Not specified', name, version)
+        return true
+      }
     }
   }
   return false
