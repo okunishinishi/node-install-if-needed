@@ -8,13 +8,15 @@ const lib = require('./lib')
 const {argv} = require('yargs')
 
 void async function () {
+  const cwd = argv.cwd || process.cwd()
+  const pkg = await lib.utils.packageForDir(cwd)
   const installed = await lib({
-    cwd: argv.cwd,
+    cwd,
     ignoreScript: argv.ignoreScript,
   })
   if (installed) {
-    console.log('[install-if-needed] Package has been installed')
+    console.log(`[install-if-needed] Package "${pkg.name}" has been installed`)
   } else {
-    console.log('[install-if-needed] No need to install')
+    console.log(`[install-if-needed] No need to install in "${pkg.name}"`)
   }
 }()
