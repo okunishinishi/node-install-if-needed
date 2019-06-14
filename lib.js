@@ -105,4 +105,6 @@ installIfNeeded.needsInstall = async (pkg, { cwd }) => {
   return false
 }
 
+installIfNeeded.utils = utils
+
 module.exports = installIfNeeded
