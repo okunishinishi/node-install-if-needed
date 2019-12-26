@@ -1,0 +1,6 @@
+{
+  "name": "mock-pack-03",
+  "devDependencies": {
+    "semver": "^4.0.0"
+  }
+}
