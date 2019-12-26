@@ -56,9 +56,9 @@ const utils = {
 
   modulePackagePath (name, { cwd }) {
     const moduleIds = [
+      `${cwd}/node_modules/${name}/package.json`,
       `${name}/package.json`,
       `node_modules/${name}/package.json`,
-      `${cwd}/node_modules/${name}/package.json`
     ]
     for (const moduleId of moduleIds) {
       try {

@@ -19,13 +19,31 @@ describe('Install if needed', async function () {
     await lib({
       cwd: `${__dirname}/misc/mocks/mock-pack01`,
     })
+    const wasInstalled = await lib({
+      cwd: `${__dirname}/misc/mocks/mock-pack01`,
+    })
+    ok(!wasInstalled)
   })
 
   it('Install mock dir2: locale file dependency', async () => {
     await lib({
       cwd: `${__dirname}/misc/mocks/mock-pack02`,
     })
+    const wasInstalled = await lib({
+      cwd: `${__dirname}/misc/mocks/mock-pack02`,
+    })
+    ok(!wasInstalled)
     await doesNotReject(() => fs.promises.stat(`${__dirname}/misc/mocks/mock-pack02/node_modules/mock-pack01`))
+  })
+
+  it('Install mock dir3: npm-install-if-needed が上のパッケージでインストールされているときにも正しく解決する', async () => {
+    await lib({
+      cwd: `${__dirname}/misc/mocks/mock-pack03`,
+    })
+    const wasInstalled = await lib({
+      cwd: `${__dirname}/misc/mocks/mock-pack03`,
+    })
+    ok(!wasInstalled)
   })
 })
 
