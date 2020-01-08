@@ -45,6 +45,13 @@ describe('Install if needed', async function () {
     })
     ok(!wasInstalled)
   })
+
+  it('Install mock dir4: npm install if node_modules are not found', async () => {
+    await lib({
+      cwd: `${__dirname}/misc/mocks/mock-pack04`,
+    })
+    await doesNotReject(() => fs.promises.stat(`${__dirname}/misc/mocks/mock-pack04/npm-install-done`))
+  })
 })
 
 /* global describe, it */
