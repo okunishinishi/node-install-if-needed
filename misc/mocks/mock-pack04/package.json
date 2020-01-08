@@ -1,0 +1,7 @@
+{
+  "name": "mock-pack-04",
+  "devDependencies": {},
+  "scripts": {
+    "postinstall": "touch npm-install-done"
+  }
+}

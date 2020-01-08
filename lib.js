@@ -16,6 +16,7 @@ const fs = require('fs')
 
 const readFileAsync = promisify(fs.readFile)
 const findupAsync = promisify(findup)
+const statAsync = promisify(fs.stat)
 
 const utils = {
   async packageForDir (cwd) {
@@ -85,6 +86,13 @@ installIfNeeded.needsInstall = async (pkg, { cwd }) => {
   const deps = {
     ...(pkg.dependencies || {}),
     ...(process.env.NODE_ENV === 'production' ? {} : (pkg.devDependencies || {}))
+  }
+  const foundNodeModules = await statAsync(`${cwd}/node_modules`)
+    .then(() => true)
+    .catch(() => false)
+  if (!foundNodeModules) {
+    debug('Not found node_modules')
+    return true
   }
   for (const [name, version] of Object.entries(deps)) {
     const modulePackagePath = utils.modulePackagePath(name, { cwd })
