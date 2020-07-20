@@ -103,7 +103,7 @@ installIfNeeded.needsInstall = async (pkg, { cwd }) => {
     const isSemver = Boolean(semver.valid(version) || semver.validRange(version))
     if (isSemver) {
       const pkg = await utils.readFileAsJSON(modulePackagePath)
-      const ok = !!pkg && semver.satisfies(pkg.version, version)
+      const ok = !!pkg && semver.satisfies(pkg.version, version, { loose: true })
       if (!ok) {
         debug('Not specified', name, version)
         return true
